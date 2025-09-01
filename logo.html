@@ -5,181 +5,176 @@
     <script src="p5.js"></script>
     <script src="p5.dom.js"></script>
     <script src="p5.sound.js"></script>
-    <style> 
-        body { 
-            padding: 0; 
-            margin: 0; 
-            overflow: hidden;
-            background: #fff;
-        } 
-        canvas { 
-            vertical-align: top; 
-        } 
-    </style>
+    
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <link href="https://fonts.googleapis.com/css?family=IBM+Plex+Mono:100,300,300i,400" rel="stylesheet">
+    
+    <script src="keyboardEngine_0830.js" type="text/javascript"></script>
+      
+    <style> body {padding: 0; margin: 0;} canvas {vertical-align: top;} </style>
+        
 </head>
 <body>
 
 <script>
-// WORDSMATTER Logo - Clean STG Cylinder Animation
-// Based on Space Type Generator by Kiel Mutschelknaus
-
+// Font variable
 var font;
-
-// Fixed brand text
-var inpText = "WORDSMATTER WORDSMATTER WORDSMATTER WORDSMATTER";
-
-// Your optimized settings
-var radius = 299;
-var stackNum = 1;
-var rRotate = 4;
-var rOffset = 0.8;
-var rWaveCount = 4;
-var rWaveSpeed = 67;
-var rWave = 37;
-var rLong = 18;
-var rZaxis = 10;
-var strecherXsize = 2;
-var strecherYsize = 2;
-var typeX = 17;
-var typeY = 33;
-var typeStroke = 2.7;
-var xRotTweak = 10;
-var yRotTweak = 13;
-var zRotTweak = 0;
-
-// Camera settings
-var xRotCamera = -13;
-var yRotCamera = -6;
-var zRotCamera = 1;
-var zoomCamera = 0;
-
-// Animation variables
-var pieSlice;
-var rWaveOffset;
-var stackHeight;
+var typeX, typeXSlider;
+var typeY, typeYSlider;
+var typeStroke, typeStrokeSlider;
+var strecherXslider, strecherXsize;
 var strecherX = 0;
+var strecherYslider, strecherYsize;
 var strecherY = 0;
 
-// Colors
+// CYLINDER - Your exact settings
+var pieSlice;
+var rSlider, radius = 299;
+var stackNumSlider, stackNum = 1;
+var rRotateSlider, rRotate = 4;
+var rOffsetSlider, rOffset = 0.8;
+var rWaveCountSlider, rWaveCount = 4;
+var rWaveSpeedSlider, rWaveSpeed = 67;
+var rWaveSlider, rWave = 37;
+var rZaxisSlider, rZaxis = 10;
+var rLongSlider, rLong = 18;
+var xRotTweakSlider,xRotTweak = 10, yRotTweakSlider, yRotTweak = 13, zRotTweakSlider, zRotTweak = 0;
+var rWaveOffset;
+var stackHeight;
+
+// CAMERA - Your exact settings
+var xRotCamera = -13, yRotCamera = -6, zRotCamera = 1;
+var xRotCameraSlider, yRotCameraSlider, zRotCameraSlider;
+var zoomCamera = 0, zoomCameraSlider;
+
+// STRING - Fixed text
+var letter_select, inp, inpText = "WORDSMATTER WORDSMATTER WORDSMATTER WORDSMATTER";
+var myText = [];
+
+// COLOR - Your exact settings
+var invertCheck;
 var strkColor = 0;
 var bkgdColor = 255;
 var bkgdStrokeColor = 235;
 
+// Type settings - Your exact settings
+typeX = 17;
+typeY = 33;
+typeStroke = 2.7;
+strecherXsize = 2;
+strecherYsize = 2;
+
 function preload() {
-    // Use system font as fallback since we don't have the original font file
+ font = loadFont('assets/IBMPlexMono-Regular.otf');
 }
 
 function setup(){
-    createCanvas(windowWidth, windowHeight, WEBGL);
-    background(bkgdColor);
-    smooth();
-    
-    stackHeight = (typeY + strecherYsize/2) + 5;
-    pieSlice = 2*PI/inpText.length;
-    rWaveOffset = 2*PI/inpText.length*rWaveCount;
+  createCanvas(windowWidth,windowHeight, WEBGL);
+  background(bkgdColor);
+  smooth();
+  textFont(font);
 }
 
 function draw(){
-    background(bkgdColor);
+  background(bkgdColor);
+  letter_select = 0;
+
+  stackHeight = (typeY+strecherYsize/2)+5;
+  pieSlice = 2*PI/inpText.length;
+  rWaveOffset = 2*PI/inpText.length*rWaveCount;
     
-    noFill();
-    strokeWeight(typeStroke);
+  noFill();
+  strokeWeight(typeStroke);
+  
+  push();
+  // camera
+  translate(0,0,zoomCamera);
+  rotateX(radians(xRotCamera));
+  rotateY(radians(yRotCamera));
+  rotateZ(radians(zRotCamera));
+  
+  // center stack
+  translate(0,-(stackNum-1)*stackHeight/2);
+  
+  // rotation
+  rotateY(frameCount*(rRotate/1000));
+               	
+  for(var i =0; i<inpText.length*stackNum; i++) {
+    var ringSpot = i%inpText.length;
+    
+    letter_select = ringSpot;  
+    
+    if(strecherYsize!=0){
+      if(floor(i/inpText.length)%2 === 1){
+        strecherY = map(sin(ringSpot*rWaveOffset + frameCount*(rWaveSpeed/1000)),-1,1,0,strecherYsize);
+      } else {
+        strecherY = map(sin(ringSpot*rWaveOffset + frameCount*(rWaveSpeed/1000) + PI),-1,1,0,strecherYsize)
+      }
+    }
+	if(strecherXsize!=0){
+      strecherX = map(sin(ringSpot*rWaveOffset + frameCount*(rWaveSpeed/1000) + PI),-1,1,0,strecherXsize)
+    }
     
     push();
+    // stack translates
+    rotateY(floor(i/inpText.length)*rOffset);
+    translate(0,floor(i/inpText.length)*stackHeight);
+    // ring translates
+    rotateY(ringSpot*pieSlice);
     
-    // Camera positioning
-    translate(0, 0, zoomCamera);
-    rotateX(radians(xRotCamera));
-    rotateY(radians(yRotCamera));
-    rotateZ(radians(zRotCamera));
-    
-    // Center stack
-    translate(0, -(stackNum-1)*stackHeight/2);
-    
-    // Main rotation
-    rotateY(frameCount*(rRotate/1000));
-                   
-    for(var i = 0; i < inpText.length*stackNum; i++) {
-        var ringSpot = i%inpText.length;
-        
-        // Calculate wave effects
-        if(strecherYsize != 0){
-            if(floor(i/inpText.length)%2 === 1){
-                strecherY = map(sin(ringSpot*rWaveOffset + frameCount*(rWaveSpeed/1000)),-1,1,0,strecherYsize);
-            } else {
-                strecherY = map(sin(ringSpot*rWaveOffset + frameCount*(rWaveSpeed/1000) + PI),-1,1,0,strecherYsize)
-            }
-        }
-        if(strecherXsize != 0){
-            strecherX = map(sin(ringSpot*rWaveOffset + frameCount*(rWaveSpeed/1000) + PI),-1,1,0,strecherXsize)
-        }
-        
-        push();
-        
-        // Stack transforms
-        rotateY(floor(i/inpText.length)*rOffset);
-        translate(0, floor(i/inpText.length)*stackHeight);
-        
-        // Ring transforms
-        rotateY(ringSpot*pieSlice);
-        translate(0, 0, radius);
-        
-        // Wave effects
-        if(rLong != 0){
-            var rLonger = sin(floor(i/inpText.length)*rWaveOffset+frameCount*(rWaveSpeed/1000))*rLong;
-            translate(0, 0, rLonger);
-        }
-        if(rZaxis != 0){
-            var rZaxiser = sin(ringSpot*rWaveOffset + frameCount*(rWaveSpeed/1000)) * rZaxis;
-            translate(0, rZaxiser, 0);
-        }
-        if(rWave != 0){
-            var rWaver = sin(ringSpot*rWaveOffset + frameCount*(rWaveSpeed/1000)) * rWave;
-            translate(0, 0, rWaver);
-        }
-        
-        // Rotation tweaks
-        if(yRotTweak != 0){
-            rotateY(cos(ringSpot*rWaveOffset + frameCount*(rWaveSpeed/1000)) * -radians(yRotTweak));
-        }
-        if(xRotTweak != 0){      
-            rotateX(cos(ringSpot*rWaveOffset + frameCount*(rWaveSpeed/1000)) * -radians(xRotTweak));
-        }
-        
-        // Longitude adjustment
-        if(rLong != 0){
-            var prerLonger = sin(floor((i/inpText.length)-1)*rWaveOffset+frameCount*(rWaveSpeed/1000))*rLong;
-            var postrLonger = sin(floor((i/inpText.length)+1)*rWaveOffset+frameCount*(rWaveSpeed/1000))*rLong;
-            var rLongAdjust = atan2(stackHeight*2,(prerLonger-postrLonger))
-            rotateX(rLongAdjust-PI/2);
-        }
-        
-        if(zRotTweak != 0){
-            rotateZ(cos(ringSpot*rWaveOffset + frameCount*(rWaveSpeed/1000)) * radians(zRotTweak));
-        }
-        
-        translate(-(typeX+strecherX)/2, -(typeY+strecherY)/2, 0);
-        
-        // Draw character - outer surface
-        stroke(strkColor);
-        fill(strkColor);
-        textAlign(CENTER, CENTER);
-        textSize(typeY);
-        text(inpText[ringSpot], (typeX+strecherX)/2, (typeY+strecherY)/2);
-        
-        translate(0, 0, -1);
-        // Draw character - inner surface
-        stroke(bkgdStrokeColor);
-        fill(bkgdStrokeColor);
-        text(inpText[ringSpot], (typeX+strecherX)/2, (typeY+strecherY)/2);
-        
-        pop();
+    translate(0,0,radius);
+    if(rLong!=0){
+      var rLonger = sin(floor(i/inpText.length)*rWaveOffset+frameCount*(rWaveSpeed/1000))*rLong;
+	  translate(0,0,rLonger);
     }
+    if(rZaxis!=0){
+      var rZaxiser = sin(ringSpot*rWaveOffset + frameCount*(rWaveSpeed/1000)) * rZaxis;
+      translate(0,rZaxiser,0);
+    }
+    if(rWave!=0){
+      var rWaver = sin(ringSpot*rWaveOffset + frameCount*(rWaveSpeed/1000)) * rWave;
+      translate(0,0,rWaver);
+    }
+    if(yRotTweak!=0){
+      rotateY(cos(ringSpot*rWaveOffset + frameCount*(rWaveSpeed/1000)) * -radians(yRotTweak));
+    }
+    if(xRotTweak!=0){      
+      rotateX(cos(ringSpot*rWaveOffset + frameCount*(rWaveSpeed/1000)) * -radians(xRotTweak));
+    }
+    
+	if(rLong!=0){
+      // fix rLong y-rotation
+      var prerLonger = sin(floor((i/inpText.length)-1)*rWaveOffset+frameCount*(rWaveSpeed/1000))*rLong;
+      var postrLonger = sin(floor((i/inpText.length)+1)*rWaveOffset+frameCount*(rWaveSpeed/1000))*rLong;
+      var rLongAdjust = atan2(stackHeight*2,(prerLonger-postrLonger))
+      rotateX(rLongAdjust-PI/2);
+    }
+    
+    if(zRotTweak!=0){
+      rotateZ(cos(ringSpot*rWaveOffset + frameCount*(rWaveSpeed/1000)) * radians(zRotTweak));
+    }
+    
+    translate(-(typeX+strecherX)/2,-(typeY+strecherY)/2,0);
+    // outer surface
+    stroke(strkColor);
+    fill(strkColor);
+    textAlign(CENTER, CENTER);
+    textSize(typeY);
+    text(inpText[letter_select], (typeX+strecherX)/2, (typeY+strecherY)/2);
+    
+    translate(0,0,-1);
+    // inner surface
+    stroke(bkgdStrokeColor);
+    fill(bkgdStrokeColor);
+    text(inpText[letter_select], (typeX+strecherX)/2, (typeY+strecherY)/2);
+    
     pop();
+  }
+  pop();
 }
 
 function windowResized() {
-    resizeCanvas(windowWidth, windowHeight);
+  resizeCanvas(windowWidth, windowHeight);
 }
 </script>
 
