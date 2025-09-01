@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html><head>
+    <meta charset="UTF-8">
+    <title>WORDSMATTER Logo</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.0.0/p5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.0.0/addons/p5.dom.min.js"></script>
+    <style> 
+        body { 
+            padding: 0; 
+            margin: 0; 
+            overflow: hidden;
+            background: #fff;
+        } 
+        canvas { 
+            vertical-align: top; 
+        } 
+    </style>
+</head>
+<body>
+
+<script>
+// WORDSMATTER Logo - Clean STG Cylinder Animation
+// Based on Space Type Generator by Kiel Mutschelknaus
+
+var font;
+
+// Fixed brand text
+var inpText = "WORDSMATTER WORDSMATTER WORDSMATTER WORDSMATTER";
+
+// Your optimized settings
+var radius = 299;
+var stackNum = 1;
+var rRotate = 4;
+var rOffset = 0.8;
+var rWaveCount = 4;
+var rWaveSpeed = 67;
+var rWave = 37;
+var rLong = 18;
+var rZaxis = 10;
+var strecherXsize = 2;
+var strecherYsize = 2;
+var typeX = 17;
+var typeY = 33;
+var typeStroke = 2.7;
+var xRotTweak = 10;
+var yRotTweak = 13;
+var zRotTweak = 0;
+
+// Camera settings
+var xRotCamera = -13;
+var yRotCamera = -6;
+var zRotCamera = 1;
+var zoomCamera = 0;
+
+// Animation variables
+var pieSlice;
+var rWaveOffset;
+var stackHeight;
+var strecherX = 0;
+var strecherY = 0;
+
+// Colors
+var strkColor = 0;
+var bkgdColor = 255;
+var bkgdStrokeColor = 235;
+
+function preload() {
+    // Use system monospace font as fallback
+}
+
+function setup(){
+    createCanvas(windowWidth, windowHeight, WEBGL);
+    background(bkgdColor);
+    smooth();
+    
+    stackHeight = (typeY + strecherYsize/2) + 5;
+    pieSlice = 2*PI/inpText.length;
+    rWaveOffset = 2*PI/inpText.length*rWaveCount;
+}
+
+function draw(){
+    background(bkgdColor);
+    
+    noFill();
+    strokeWeight(typeStroke);
+    
+    push();
+    
+    // Camera positioning
+    translate(0, 0, zoomCamera);
+    rotateX(radians(xRotCamera));
+    rotateY(radians(yRotCamera));
+    rotateZ(radians(zRotCamera));
+    
+    // Center stack
+    translate(0, -(stackNum-1)*stackHeight/2);
+    
+    // Main rotation
+    rotateY(frameCount*(rRotate/1000));
+                   
+    for(var i = 0; i < inpText.length*stackNum; i++) {
+        var ringSpot = i%inpText.length;
+        
+        // Calculate wave effects
+        if(strecherYsize != 0){
+            if(floor(i/inpText.length)%2 === 1){
+                strecherY = map(sin(ringSpot*rWaveOffset + frameCount*(rWaveSpeed/1000)),-1,1,0,strecherYsize);
+            } else {
+                strecherY = map(sin(ringSpot*rWaveOffset + frameCount*(rWaveSpeed/1000) + PI),-1,1,0,strecherYsize)
+            }
+        }
+        if(strecherXsize != 0){
+            strecherX = map(sin(ringSpot*rWaveOffset + frameCount*(rWaveSpeed/1000) + PI),-1,1,0,strecherXsize)
+        }
+        
+        push();
+        
+        // Stack transforms
+        rotateY(floor(i/inpText.length)*rOffset);
+        translate(0, floor(i/inpText.length)*stackHeight);
+        
+        // Ring transforms
+        rotateY(ringSpot*pieSlice);
+        translate(0, 0, radius);
+        
+        // Wave effects
+        if(rLong != 0){
+            var rLonger = sin(floor(i/inpText.length)*rWaveOffset+frameCount*(rWaveSpeed/1000))*rLong;
+            translate(0, 0, rLonger);
+        }
+        if(rZaxis != 0){
+            var rZaxiser = sin(ringSpot*rWaveOffset + frameCount*(rWaveSpeed/1000)) * rZaxis;
+            translate(0, rZaxiser, 0);
+        }
+        if(rWave != 0){
+            var rWaver = sin(ringSpot*rWaveOffset + frameCount*(rWaveSpeed/1000)) * rWave;
+            translate(0, 0, rWaver);
+        }
+        
+        // Rotation tweaks
+        if(yRotTweak != 0){
+            rotateY(cos(ringSpot*rWaveOffset + frameCount*(rWaveSpeed/1000)) * -radians(yRotTweak));
+        }
+        if(xRotTweak != 0){      
+            rotateX(cos(ringSpot*rWaveOffset + frameCount*(rWaveSpeed/1000)) * -radians(xRotTweak));
+        }
+        
+        // Longitude adjustment
+        if(rLong != 0){
+            var prerLonger = sin(floor((i/inpText.length)-1)*rWaveOffset+frameCount*(rWaveSpeed/1000))*rLong;
+            var postrLonger = sin(floor((i/inpText.length)+1)*rWaveOffset+frameCount*(rWaveSpeed/1000))*rLong;
+            var rLongAdjust = atan2(stackHeight*2,(prerLonger-postrLonger))
+            rotateX(rLongAdjust-PI/2);
+        }
+        
+        if(zRotTweak != 0){
+            rotateZ(cos(ringSpot*rWaveOffset + frameCount*(rWaveSpeed/1000)) * radians(zRotTweak));
+        }
+        
+        translate(-(typeX+strecherX)/2, -(typeY+strecherY)/2, 0);
+        
+        // Draw character - outer surface
+        stroke(strkColor);
+        fill(strkColor);
+        textAlign(CENTER, CENTER);
+        textSize(typeY);
+        text(inpText[ringSpot], (typeX+strecherX)/2, (typeY+strecherY)/2);
+        
+        translate(0, 0, -1);
+        // Draw character - inner surface
+        stroke(bkgdStrokeColor);
+        fill(bkgdStrokeColor);
+        text(inpText[ringSpot], (typeX+strecherX)/2, (typeY+strecherY)/2);
+        
+        pop();
+    }
+    pop();
+}
+
+function windowResized() {
+    resizeCanvas(windowWidth, windowHeight);
+}
+</script>
+
+</body></html>
